@@ -26,6 +26,20 @@ LANGUAGE_NAMES = {
     "zh": "Chiński",
 }
 
+@st.cache_resource
+def load_sentiment():
+    return pipeline("sentiment-analysis")
+
+@st.cache_resource
+def load_language_detector():
+    return pipeline("text-classification", model="papluca/xlm-roberta-base-language-detection")
+
+@st.cache_resource
+def load_translator():
+    tokenizer = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-de")
+    model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-en-de")
+    return tokenizer, model
+
 st.header("Przetwarzanie języka naturalnego")
 
 option = st.selectbox(
@@ -47,7 +61,7 @@ if option == "Wydźwięk emocjonalny tekstu (eng)":
         else:
             with st.spinner("Analizuję wydźwięk..."):
                 try:
-                    classifier = pipeline("sentiment-analysis")
+                    classifier = load_sentiment()
                     answer = classifier(text)
                     label = answer[0]["label"]
                     score = round(answer[0]["score"] * 100, 2)
@@ -72,7 +86,7 @@ elif option == "Rozpoznawanie języka":
         else:
             with st.spinner("Rozpoznaję język... (prosze chwilke poczekac)"):
                 try:
-                    detector = pipeline("text-classification", model="papluca/xlm-roberta-base-language-detection")
+                    detector = load_language_detector()
                     result = detector(text)
                     lang = result[0]["label"]
                     score = round(result[0]["score"] * 100, 2)
@@ -94,8 +108,7 @@ elif option == "Tłumaczenie EN → DE":
         else:
             with st.spinner("Tłumaczę tekst... (prosze chwilke poczekac)"):
                 try:
-                    tokenizer = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-de")
-                    model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-en-de")
+                    tokenizer, model = load_translator()
                     inputs = tokenizer(text, return_tensors="pt", padding=True)
                     translated = model.generate(**inputs)
                     result = tokenizer.decode(translated[0], skip_special_tokens=True)
