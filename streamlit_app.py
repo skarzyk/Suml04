@@ -9,6 +9,7 @@ st.write(
     Dostępne funkcje:
     - **Rozpoznawanie języka** — sprawdź w jakim języku napisany jest tekst
     - **Tłumaczenie EN → DE** — przetłumacz tekst z języka angielskiego na niemiecki
+    - **Wydźwięk emocjonalny tekstu** - sprawdź wydźwięk tekstu
     """
 )
 
