@@ -44,31 +44,40 @@ if option == "Rozpoznawanie języka":
             " Wietnamski, Chiński")
     text = st.text_area(label="Wpisz tekst")
     if text:
-        with st.spinner("Rozpoznaję język... (prosze chwilke poczekac)"):
-            try:
-                detector = pipeline("text-classification", model="papluca/xlm-roberta-base-language-detection")
-                result = detector(text)
-                lang = result[0]["label"]
-                score = round(result[0]["score"] * 100, 2)
-                lang_name = LANGUAGE_NAMES.get(lang, lang)
-                st.success(f"Wykryty język: **{lang_name}** (pewność: {score}%)")
-            except Exception as e:
-                st.error(f"Wystąpił błąd: {e}")
+        if len(text.strip()) < 3:
+            st.warning("Tekst jest za krótki — wpisz co najmniej kilka znaków.")
+        else:
+            with st.spinner("Rozpoznaję język... (prosze chwilke poczekac)"):
+                try:
+                    detector = pipeline("text-classification", model="papluca/xlm-roberta-base-language-detection")
+                    result = detector(text)
+                    lang = result[0]["label"]
+                    score = round(result[0]["score"] * 100, 2)
+                    lang_name = LANGUAGE_NAMES.get(lang, lang)
+                    if score < 50:
+                        st.warning(f"Wykryty język: **{lang_name}**, ale pewność jest niska ({score}%). Spróbuj wpisać dłuższy tekst.")
+                    else:
+                        st.success(f"Wykryty język: **{lang_name}** (pewność: {score}%)")
+                except Exception:
+                    st.error("Nie udało się rozpoznać języka. Sprawdź połączenie z internetem i spróbuj ponownie.")
 
 elif option == "Tłumaczenie EN → DE":
     st.subheader("Tłumaczenie angielski → niemiecki")
     st.write("Wpisz tekst w języku angielskim, a model przetłumaczy go na język niemiecki.")
     text = st.text_area(label="Wpisz tekst po angielsku")
     if text:
-        with st.spinner("Tłumaczę tekst... (prosze chwilke poczekac)"):
-            try:
-                translator = pipeline("translation_en_to_de", model="Helsinki-NLP/opus-mt-en-de")
-                result = translator(text)
-                st.success("Tłumaczenie zakończone!")
-                st.write("**Wynik:**")
-                st.write(result[0]["translation_text"])
-            except Exception as e:
-                st.error(f"Wystąpił błąd podczas tłumaczenia: {e}")
+        if len(text.strip()) < 2:
+            st.warning("Tekst jest za krótki — wpisz co najmniej kilka słów.")
+        else:
+            with st.spinner("Tłumaczę tekst... (prosze chwilke poczekac)"):
+                try:
+                    translator = pipeline("translation_en_to_de", model="Helsinki-NLP/opus-mt-en-de")
+                    result = translator(text)
+                    st.success("Tłumaczenie zakończone!")
+                    st.write("**Wynik:**")
+                    st.write(result[0]["translation_text"])
+                except Exception:
+                    st.error("Nie udało się przetłumaczyć tekstu. Sprawdź połączenie z internetem i spróbuj ponownie.")
 
 st.divider()
 st.caption("Numer indeksu: s28759")
