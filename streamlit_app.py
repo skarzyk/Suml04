@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 
 st.title("Aplikacja do analizy tekstu i tłumaczenia")
 st.write(
@@ -94,11 +94,14 @@ elif option == "Tłumaczenie EN → DE":
         else:
             with st.spinner("Tłumaczę tekst... (prosze chwilke poczekac)"):
                 try:
-                    translator = pipeline("translation", model="Helsinki-NLP/opus-mt-en-de")
-                    result = translator(text)
+                    tokenizer = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-de")
+                    model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-en-de")
+                    inputs = tokenizer(text, return_tensors="pt", padding=True)
+                    translated = model.generate(**inputs)
+                    result = tokenizer.decode(translated[0], skip_special_tokens=True)
                     st.success("Tłumaczenie zakończone!")
                     st.write("**Wynik:**")
-                    st.write(result[0]["translation_text"])
+                    st.write(result)
                 except Exception as e:
                     st.error(f"Nie udało się przetłumaczyć tekstu: {e}")
 
