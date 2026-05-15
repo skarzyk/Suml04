@@ -30,12 +30,34 @@ st.header("Przetwarzanie języka naturalnego")
 option = st.selectbox(
     "Wybierz funkcję",
     [
+        "Wydźwięk emocjonalny tekstu (eng)",
         "Rozpoznawanie języka",
         "Tłumaczenie EN → DE",
     ],
 )
 
-if option == "Rozpoznawanie języka":
+if option == "Wydźwięk emocjonalny tekstu (eng)":
+    st.subheader("Analiza wydźwięku emocjonalnego")
+    st.write("Wpisz tekst po angielsku, a model oceni czy ma wydźwięk pozytywny czy negatywny.")
+    text = st.text_area(label="Wpisz tekst po angielsku")
+    if text:
+        if len(text.strip()) < 3:
+            st.warning("Tekst jest za krótki — wpisz co najmniej kilka słów.")
+        else:
+            with st.spinner("Analizuję wydźwięk..."):
+                try:
+                    classifier = pipeline("sentiment-analysis")
+                    answer = classifier(text)
+                    label = answer[0]["label"]
+                    score = round(answer[0]["score"] * 100, 2)
+                    if label == "POSITIVE":
+                        st.success(f"Wydźwięk: POZYTYWNY (pewność: {score}%)")
+                    else:
+                        st.error(f"Wydźwięk: NEGATYWNY (pewność: {score}%)")
+                except Exception as e:
+                    st.error(f"Nie udało się przeanalizować tekstu: {e}")
+
+elif option == "Rozpoznawanie języka":
     st.subheader("Rozpoznawanie języka")
     st.write("Wpisz dowolny tekst, a ja postaram sie odgadnac co to za jezyk :)")
     st.info("Obsługiwane języki: Arabski, Bułgarski, Niemiecki, Grecki, Angielski,"
@@ -76,8 +98,8 @@ elif option == "Tłumaczenie EN → DE":
                     st.success("Tłumaczenie zakończone!")
                     st.write("**Wynik:**")
                     st.write(result[0]["translation_text"])
-                except Exception:
-                    st.error("Nie udało się przetłumaczyć tekstu. Sprawdź połączenie z internetem i spróbuj ponownie.")
+                except Exception as e:
+                    st.error(f"Nie udało się przetłumaczyć tekstu: {e}")
 
 st.divider()
 st.caption("Numer indeksu: s28759")
